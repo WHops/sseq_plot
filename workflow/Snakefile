@@ -12,16 +12,16 @@ configfile: "config/config.yaml"
 
 rule all: 
     input:
-        png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
-        bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
+        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
+        bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe"
 
 
 rule get_plot_and_bedpe:
     input:
         sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     output:
-        png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
-        bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
+        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
+        bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe"
     params:
         binsize = config["binsize"],
     shell:

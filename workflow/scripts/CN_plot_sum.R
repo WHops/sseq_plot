@@ -107,7 +107,7 @@ plot_read_density <- function(output, mean_mappability, bin_size, window_start, 
     theme_minimal() +
     theme(legend.position = "none", panel.grid.minor = element_blank()) +
     labs(y = 'Estimated copy number') +
-    ggtitle(paste0(samplename, ": Orientation-specific CN estimates in ", as.character(bin_size / 1000), " kbp bins across the X chromosome")) +
+    ggtitle(paste0(samplename, ": Orientation-specific CN estimates in ", as.character(bin_size / 1000), " kbp bins")) +
     scale_color_manual(values = c("+" = rgb(243 / 255, 165 / 255, 97 / 255), "-" = rgb(103 / 255, 139 / 255, 139 / 255)))
   
   print(p)
