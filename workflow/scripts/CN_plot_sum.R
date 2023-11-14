@@ -159,14 +159,20 @@ if (sys.nframe() == 0){
   output_plotfile <- args[2]
   output_bedgraph <- args[3]
   chromosome <- args[4]
-  window_start <- args[5]
-  window_stop <- args[6]
-  binsize <- args[7]
+  window_start <- as.numeric(args[5])
+  window_stop <- as.numeric(args[6])
+  binsize <- as.numeric(args[7])
 
 
   ref_window_start = window_start - 2000000
   ref_window_stop = window_start
-  
+
+  # If one of ref window is negative, instead have the window after the region. 
+  if (ref_window_start < 0){
+    ref_window_start = window_stop
+    ref_window_stop = window_stop + 2000000
+  }
+
   samplename = extract_samplename(input_file)
 
   data <- read_input_file(input_file)
