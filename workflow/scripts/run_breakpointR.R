@@ -7,7 +7,7 @@ chromosomes = args[3]
 pairedEndReads = F
 
 if (chromosomes = 'all'){
-    chromosomes = paste0('chr',c(1:22,'X','Y')
+    chromosomes = paste0('chr',c(1:22,'X','Y'))
 }
 
 breakpointR(inputfolder = bamdir,
