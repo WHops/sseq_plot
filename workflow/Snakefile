@@ -8,31 +8,39 @@
     # An output plot
     # Output data
 
-
+config = "config/config.yaml"
 
 rule all: 
     input:
-        png = "{sample}_{chr}_{start}_{end}.png",
-        bedpe = "{sample}_{chr}_{start}_{end}.bedpe"
+        png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
+        bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
 
 
 rule get_plot_and_bedpe:
     input:
         sample_concat_orientationflip = "{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     output:
-        png = "{sample}_{chr}_{start}_{end}.png",
-        bedpe = "{sample}_{chr}_{start}_{end}.bedpe"
+        png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
+        bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
+    params:
+        binsize = config['binsize']
     shell:
         """
-        Rscript scripts/CN_plot_sum.R {input.sample_concat_orientationflip} none {output.png} {output.bedpe}
+        Rscript scripts/CN_plot_sum.R \
+            {input.sample_concat_orientationflip} \
+            {output.png} \
+            {output.bedpe} \
+            {wildcards.chr} \
+            {wildcards.start} \
+            {wildcards.end}
         """
 
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
 rule get_sample_concat_orientationflip:
     input:
-        sample_concat = "{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+        sample_concat = "res/{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
     output:
-        sample_concat_orientationflip = "{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
+        sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     shell: 
         """
         python scripts/bedfile_orientation_processor_v2.py \
@@ -45,12 +53,12 @@ rule get_sample_concat_orientationflip:
 
 rule get_sample_concat:
     input:
-        done_marker = "{sample}/done.txt"
+        done_marker = "res/{sample}/done.txt"
     output:
-        sample_concat = "{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+        sample_concat = "res/{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
     params:
         # The folder of done_marker
-         new_outfolder = "{sample}"
+         new_outfolder = "res/{sample}"
     shell:
         """
         python scripts/prep_for_ucsc.py \
@@ -61,11 +69,11 @@ rule get_sample_concat:
 rule run_breakpointr:
     input:
     output:
-        done_marker = "{sample}/done.txt"
+        done_marker = "res/{sample}/done.txt"
     params:
         chromosomes = 'all',
-        bamdir = "bam/{sample}/selected",
-        outfolder = '{sample}'
+        bamdir = config['bamdir'],
+        outfolder = 'res/{sample}'
     shell:
         """
         Rscript scripts/run_breakpointR.R \

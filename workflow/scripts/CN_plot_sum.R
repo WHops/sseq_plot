@@ -43,7 +43,7 @@ extract_samplename <- function(input_file) {
 #' @param window_start Start position of the window
 #' @param window_stop Stop position of the window
 #' @return List containing the processed output data frame
-process_data <- function(data, bin_size, window_start, window_stop) {
+process_data <- function(data, bin_size, window_start, window_stop, ref_window_start, ref_window_stop) {
   
   # Count reads per bin separately for + and - strand.
   output <- data %>%
@@ -56,7 +56,7 @@ process_data <- function(data, bin_size, window_start, window_stop) {
   
   # Get mean 'reference' read counts in a reference region (here: chrX:150Mb-152Mb)
   sum_reads_region <- output %>%
-    filter(bin >= 116000000 & bin <= 118000000) %>% 
+    filter(bin >= ref_window_start & bin <= ref_window_stop) %>% 
     summarize(sum_read_count_region = mean(abs(read_count)) * 2) %>%
     ungroup()
   
@@ -150,53 +150,55 @@ if (sys.nframe() == 0){
   # Read command-line arguments
   args <- commandArgs(trailingOnly = TRUE)
   
-  if (length(args) != 4) {
-    cat("Usage: Rscript script.R <input_file> <mappability_file> <output_plotfile> <output_bedgraph>\n")
+  if (length(args) != 7) {
+    cat("Usage: Rscript script.R <input_file> <output_plotfile> <output_bedgraph> <chromosome> <window_start> <window_stop> <binsize>\n")
     quit(save="no", status=1)
   }
   
   input_file <- args[1]
-  mappability_file <- args[2]
-  output_plotfile <- args[3]
-  output_bedgraph <- args[4]
+  output_plotfile <- args[2]
+  output_bedgraph <- args[3]
+  chromosome <- args[4]
+  window_start <- args[5]
+  window_stop <- args[6]
+  binsize <- args[7]
 
-  bin_size <- 10000
-  window_start <- 119760819
-  window_stop <- 121619186
 
-    samplename = extract_samplename(input_file)
-
-    data <- read_input_file(input_file)
-    #window_stop <- max(data$start)
-    
-    # Count normalized reads per bin and directionality.
-    processed_data <- process_data(data, bin_size, window_start, window_stop)
-    output <- processed_data$output
-    
-    # Get also mappability data to highlight in the outcoming plot which regions could be un-trustworthy.
-    #mappability_data <- read_mappability_file(mappability_file)
-    #mean_mappability_data <- calculate_mean_mappability(mappability_data, bin_size)
-    
-    # Merge mean_mappability_data with output
-   # output <- output %>%
-   #   left_join(mean_mappability_data, by = "bin")
-    mean_mappability_data = 'dummy'
-
-    # Make and save the plot
-    plot <- plot_read_density(output, mean_mappability_data, bin_size, window_start, window_stop, samplename)
-    ggsave(plot = plot, filename = output_plotfile, device = 'png', height = 10, width = 20, units = 'cm')
-    
-    # Filter the data frame by strand
-    minus_strand <- output[output$strand == "-", ]
-    plus_strand <- output[output$strand == "+", ]
-    
-    chromosome = 'chr1'
-    
-    # Create BedGraph files for both strands which we can upload to UCSC.
-    create_bedgraph(output, chromosome, "-", "103,139,139", output_bedgraph, bin_size = bin_size)
-    create_bedgraph(output, chromosome, "+", "243,165,97", output_bedgraph, bin_size = bin_size, append = TRUE)
-    
+  ref_window_start = window_start - 2000000
+  ref_window_stop = window_start
   
+  samplename = extract_samplename(input_file)
+
+  data <- read_input_file(input_file)
+  #window_stop <- max(data$start)
+  
+  # Count normalized reads per bin and directionality.
+  processed_data <- process_data(data, bin_size, window_start, window_stop, ref_window_start, ref_window_stop)
+  output <- processed_data$output
+  
+  # Get also mappability data to highlight in the outcoming plot which regions could be un-trustworthy.
+  #mappability_data <- read_mappability_file(mappability_file)
+  #mean_mappability_data <- calculate_mean_mappability(mappability_data, bin_size)
+  
+  # Merge mean_mappability_data with output
+  # output <- output %>%
+  #   left_join(mean_mappability_data, by = "bin")
+  mean_mappability_data = 'dummy'
+
+  # Make and save the plot
+  plot <- plot_read_density(output, mean_mappability_data, bin_size, window_start, window_stop, samplename)
+  ggsave(plot = plot, filename = output_plotfile, device = 'png', height = 10, width = 20, units = 'cm')
+  
+  # Filter the data frame by strand
+  minus_strand <- output[output$strand == "-", ]
+  plus_strand <- output[output$strand == "+", ]
+  
+  
+  # Create BedGraph files for both strands which we can upload to UCSC.
+  create_bedgraph(output, chromosome, "-", "103,139,139", output_bedgraph, bin_size = bin_size)
+  create_bedgraph(output, chromosome, "+", "243,165,97", output_bedgraph, bin_size = bin_size, append = TRUE)
+  
+
 }
 
 
