@@ -50,7 +50,6 @@ rule get_sample_concat:
         sample_concat = "{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
     params:
         # The folder of done_marker
-         new_outfolder = "{sample}/bps_output",
          new_outfolder = "{sample}"
     shell:
         """
