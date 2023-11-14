@@ -77,7 +77,7 @@ rule run_breakpointr:
     shell:
         """
         Rscript workflow/scripts/run_breakpointR.R \
-            {params.bamdir} \
+            {params.bamdir}/{wildcards.sample}/selected \
             {params.outfolder} \
             {params.chromosomes} 
         """
