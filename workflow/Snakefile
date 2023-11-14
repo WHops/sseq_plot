@@ -9,8 +9,9 @@
     # Output data
 
 configfile: "config/config.yaml"
-samplefile <- "config/samples.tsv"
-regionfile <- "config/regions.tsv"
+
+samplefile = "config/samples.tsv"
+regionfile = "config/regions.tsv"
 
 # Read regions file and process it into a list of dictionaries
 def read_regions(regions_file):
