@@ -22,8 +22,6 @@ rule get_plot_and_bedpe:
     output:
         png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
         bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
-    params:
-        binsize = config["binsize"],
     shell:
         """
         Rscript scripts/CN_plot_sum.R \
@@ -33,7 +31,7 @@ rule get_plot_and_bedpe:
             {wildcards.chr} \
             {wildcards.start} \
             {wildcards.end} \
-            {params.binsize}
+            25000
         """
 
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
