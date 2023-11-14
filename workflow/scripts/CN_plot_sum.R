@@ -161,7 +161,7 @@ if (sys.nframe() == 0){
   chromosome <- args[4]
   window_start <- as.numeric(args[5])
   window_stop <- as.numeric(args[6])
-  binsize <- as.numeric(args[7])
+  bin_size <- as.numeric(args[7])
 
 
   ref_window_start = window_start - 2000000
