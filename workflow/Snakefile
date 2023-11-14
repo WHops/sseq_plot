@@ -39,7 +39,7 @@ rule get_plot_and_bedpe:
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
 rule get_sample_concat_orientationflip:
     input:
-        sample_concat = "res/{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+        sample_concat = "res/{sample}/sample_concat.bed.gz"
     output:
         sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     shell: 
@@ -56,7 +56,7 @@ rule get_sample_concat:
     input:
         done_marker = "res/{sample}/done.txt"
     output:
-        sample_concat = "res/{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+        sample_concat = "res/{sample}/sample_concat.bed.gz"
     params:
          new_outfolder = "res/{sample}"
     shell:
