@@ -9,11 +9,42 @@
     # Output data
 
 configfile: "config/config.yaml"
+samplefile <- "config/samples.tsv"
+regionfile <- "config/regions.tsv"
+
+# Read regions file and process it into a list of dictionaries
+def read_regions(regions_file):
+    regions = []
+    with open(regions_file, 'r') as file:
+        # Skip the header if there is one, otherwise remove this line
+        next(file)
+        for line in file:
+            parts = line.strip().split('\t')
+            # Assuming the file has three columns: chr, start, end
+            regions.append({'chr': parts[0], 'start': parts[1], 'end': parts[2]})
+    return regions
+
+
+
+samples_raw = open(samplefile)
+SAMPlES = samples_raw.read().split("\n")[:-1]
+
+REGIONS = read_regions(regionfile)
+
 
 rule all: 
     input:
-        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
-        bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe"
+        png = expand("res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
+               sample=SAMPLES,
+               chr=[r['chr'] for r in REGIONS],
+               start=[r['start'] for r in REGIONS],
+               end=[r['end'] for r in REGIONS])
+        bedpe = expand("res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe",
+               sample=SAMPLES,
+               chr=[r['chr'] for r in REGIONS],
+               start=[r['start'] for r in REGIONS],
+               end=[r['end'] for r in REGIONS])
+
 
 
 rule get_plot_and_bedpe:
