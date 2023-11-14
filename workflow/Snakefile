@@ -71,7 +71,7 @@ rule run_breakpointr:
     output:
         done_marker = "res/{sample}/done.txt"
     params:
-        chromosomes = 'all',
+        chromosomes =  config['chromosomes'],
         bamdir = config['bamdir'],
         outfolder = 'res/{sample}'
     shell:
