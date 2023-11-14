@@ -8,7 +8,7 @@
     # An output plot
     # Output data
 
-config = "config/config.yaml"
+configfile: "config/config.yaml"
 
 rule all: 
     input:
@@ -22,6 +22,8 @@ rule get_plot_and_bedpe:
     output:
         png = "res/{sample}/{sample}_{chr}_{start}_{end}.png",
         bedpe = "res/{sample}/{sample}_{chr}_{start}_{end}.bedpe"
+    params:
+        binsize = config["binsize"],
     shell:
         """
         Rscript scripts/CN_plot_sum.R \
@@ -31,7 +33,7 @@ rule get_plot_and_bedpe:
             {wildcards.chr} \
             {wildcards.start} \
             {wildcards.end} \
-            25000
+            {params.binsize}
         """
 
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
@@ -56,7 +58,6 @@ rule get_sample_concat:
     output:
         sample_concat = "res/{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
     params:
-        # The folder of done_marker
          new_outfolder = "res/{sample}"
     shell:
         """
