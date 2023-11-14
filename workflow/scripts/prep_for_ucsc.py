@@ -4,13 +4,12 @@ import sys
 
 # Input folder containing bed files
 input_folder = sys.argv[1]
-output_folder = sys.argv[2]
+output_filename = sys.argv[2]
 # Create the output folder
 #output_folder = os.path.join(input_folder, 'upload')
 os.makedirs(output_folder, exist_ok=True)
 
 # Concatenate all bed files into a single file
-output_filename = os.path.join(output_folder, 'concatenated.bed.gz')
 with gzip.open(output_filename, 'wt') as output_file:
     for filename in os.listdir(input_folder):
         if filename.endswith('_reads.bed.gz'):

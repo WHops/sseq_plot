@@ -57,13 +57,11 @@ rule get_sample_concat:
         done_marker = "res/{sample}/done.txt"
     output:
         sample_concat = "res/{sample}/sample_concat.bed.gz"
-    params:
-         new_outfolder = "res/{sample}"
     shell:
         """
         python workflow/scripts/prep_for_ucsc.py \
                     res/{wildcards.sample}/browserfiles \
-                    {params.new_outfolder} 
+                    {output.sample_concat} 
         """
 
 rule run_breakpointr:
