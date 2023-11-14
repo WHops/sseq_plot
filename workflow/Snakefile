@@ -80,4 +80,5 @@ rule run_breakpointr:
             {params.bamdir}/{wildcards.sample}/selected \
             {params.outfolder} \
             {params.chromosomes} 
+        touch {output.done_marker}
         """

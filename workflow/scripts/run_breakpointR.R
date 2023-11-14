@@ -10,7 +10,7 @@ if (chromosomes == 'all'){
     chromosomes = paste0('chr',c(1:22,'X','Y'))
 }
 
-breakpointR(inputfolder = bamdir,
+breakpointr(inputfolder = bamdir,
             outputfolder = outputdir,
             chromosomes = chromosomes,
             pairedEndReads = pairedEndReads)
