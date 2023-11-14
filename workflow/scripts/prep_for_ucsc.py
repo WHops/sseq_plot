@@ -7,7 +7,6 @@ input_folder = sys.argv[1]
 output_filename = sys.argv[2]
 # Create the output folder
 #output_folder = os.path.join(input_folder, 'upload')
-os.makedirs(output_folder, exist_ok=True)
 
 # Concatenate all bed files into a single file
 with gzip.open(output_filename, 'wt') as output_file:
