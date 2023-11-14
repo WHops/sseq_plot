@@ -28,7 +28,7 @@ def read_regions(regions_file):
 
 
 samples_raw = open(samplefile)
-SAMPlES = samples_raw.read().split("\n")[:-1]
+SAMPLES = samples_raw.read().split("\n")[:-1]
 
 REGIONS = read_regions(regionfile)
 
