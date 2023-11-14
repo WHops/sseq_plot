@@ -62,7 +62,7 @@ rule get_sample_concat:
     shell:
         """
         python workflow/scripts/prep_for_ucsc.py \
-                    {wildcards.sample} \ 
+                    res/{wildcards.sample}/browserfiles \ 
                     {params.new_outfolder} 
         """
 
