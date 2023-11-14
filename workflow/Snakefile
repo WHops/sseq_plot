@@ -38,7 +38,7 @@ rule all:
                sample=SAMPLES,
                chr=[r['chr'] for r in REGIONS],
                start=[r['start'] for r in REGIONS],
-               end=[r['end'] for r in REGIONS])
+               end=[r['end'] for r in REGIONS]),
         bedpe = expand("res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe",
                sample=SAMPLES,
                chr=[r['chr'] for r in REGIONS],
