@@ -1,0 +1,76 @@
+# Whoeps, 14th Nov 2023
+
+# This is a snakefile to go from: 
+    #   1) A collection of folders containing samplewise bam files from Strandseq
+    #   2) a sample name
+    #   3) Reference coordinates
+# To:
+    # An output plot
+    # Output data
+
+
+
+rule all: 
+    input:
+        png = "{sample}_{chr}_{start}_{end}.png"
+        bedpe = "{sample}_{chr}_{start}_{end}.bedpe"
+
+
+rule get_plot_and_bedpe:
+    input:
+        sample_concat_orientationflip = "{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
+    output:
+        png = "{sample}_{chr}_{start}_{end}.png",
+        bedpe = "{sample}_{chr}_{start}_{end}.bedpe"
+    shell:
+        """
+        Rscript scripts/CN_plot_sum.R {input.sample_concat_orientationflip} none {output.png} {output.bedpe}
+        """
+
+# For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
+rule get_sample_concat_orientationflip:
+    input:
+        sample_concat = "{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+    output:
+        sample_concat_orientationflip = "{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
+    shell: 
+        """
+        python scripts/bedfile_orientation_processor_v2.py \
+            {input.sample_concat} \
+            {output.sample_concat_orientationflip} \
+            {wildcards.chr} \
+            {wildcards.start} \
+            {wildcards.end}
+        """
+
+rule get_sample_concat:
+    input:
+        done_marker = "{sample}/done.txt"
+    output:
+        sample_concat = "{sample}/sample_concat_{chr}_{start}_{end}.bed.gz"
+    params:
+        # The folder of done_marker
+         new_outfolder = "{sample}/bps_output"
+         new_outfolder = "{sample}"
+    shell:
+        """
+        python scripts/prep_for_ucsc.py \
+                    {wildcards.sample} \ 
+                    {params.new_outfolder} 
+        """
+
+rule run_breakpointr:
+    input:
+    output:
+        done_marker = "{sample}/done.txt"
+    params:
+        chromosomes = 'all',
+        bamdir = "bam/{sample}/selected",
+        outfolder = '{sample}
+    shell:
+        """
+        Rscript scripts/run_breakpointR.R \
+            {input.bamdir} \
+            {params.outfolder} \
+            {params.chromosomes} 
+        """
