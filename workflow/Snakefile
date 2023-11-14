@@ -26,7 +26,7 @@ rule get_plot_and_bedpe:
         binsize = config["binsize"],
     shell:
         """
-        Rscript scripts/CN_plot_sum.R \
+        Rscript workflow/scripts/CN_plot_sum.R \
             {input.sample_concat_orientationflip} \
             {output.png} \
             {output.bedpe} \
@@ -44,7 +44,7 @@ rule get_sample_concat_orientationflip:
         sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     shell: 
         """
-        python scripts/bedfile_orientation_processor_v2.py \
+        python workflow/scripts/bedfile_orientation_processor_v2.py \
             {input.sample_concat} \
             {output.sample_concat_orientationflip} \
             {wildcards.chr} \
@@ -61,7 +61,7 @@ rule get_sample_concat:
          new_outfolder = "res/{sample}"
     shell:
         """
-        python scripts/prep_for_ucsc.py \
+        python workflow/scripts/prep_for_ucsc.py \
                     {wildcards.sample} \ 
                     {params.new_outfolder} 
         """
@@ -76,7 +76,7 @@ rule run_breakpointr:
         outfolder = 'res/{sample}'
     shell:
         """
-        Rscript scripts/run_breakpointR.R \
+        Rscript workflow/scripts/run_breakpointR.R \
             {params.bamdir} \
             {params.outfolder} \
             {params.chromosomes} 
