@@ -32,7 +32,8 @@ rule get_plot_and_bedpe:
             {output.bedpe} \
             {wildcards.chr} \
             {wildcards.start} \
-            {wildcards.end}
+            {wildcards.end} \
+            {params.binsize}
         """
 
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
