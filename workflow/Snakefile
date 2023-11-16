@@ -29,22 +29,21 @@ def read_regions(regions_file):
 samples_raw = open(samplefile)
 SAMPLES = samples_raw.read().split("\n")[:-1]
 
-REGIONS = read_regions(regionfile)
+regions_raw = open(regionfile)
+REGIONS = regions_raw.read().split("\n")[:-1]
 
 print(SAMPLES)
 print(REGIONS)
 rule all: 
     input:
-        png = expand("res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
+        png = expand("res/{sample}/pipe_plots/{sample}_{chr_start_end}_{binsize}.png",
                sample=SAMPLES,
-               chr=[r['chr'] for r in REGIONS],
-               start=[r['start'] for r in REGIONS],
-               end=[r['end'] for r in REGIONS]),
-        bedpe = expand("res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe",
+               chr_start_end=REGIONS,
+               binsize=config["binsize"]),
+        bedpe = expand("res/{sample}/pipe_data/{sample}_{chr_start_end}_{binsize}.bedpe",
                sample=SAMPLES,
-               chr=[r['chr'] for r in REGIONS],
-               start=[r['start'] for r in REGIONS],
-               end=[r['end'] for r in REGIONS])
+               chr_start_end=REGIONS,               
+               binsize=config["binsize"])
 
 
 
@@ -52,10 +51,8 @@ rule get_plot_and_bedpe:
     input:
         sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     output:
-        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}.png",
-        bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}.bedpe"
-    params:
-        binsize = config["binsize"],
+        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}_{binsize}.png",
+        bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}_{binsize}.bedpe"
     shell:
         """
         Rscript workflow/scripts/CN_plot_sum.R \
@@ -65,7 +62,7 @@ rule get_plot_and_bedpe:
             {wildcards.chr} \
             {wildcards.start} \
             {wildcards.end} \
-            {params.binsize}
+            {wildcards.binsize}
         """
 
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 

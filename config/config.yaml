@@ -1,3 +1,3 @@
 bamdir : '/g/korbel/hoeps/projects/huminvs/arbigent/chm13_wmap/pipeline_chm13_jul14/bam'
-binsize : '25000'
-chromosomes: 'chr1'
+binsize : '10000'
+chromosomes: 'all'
