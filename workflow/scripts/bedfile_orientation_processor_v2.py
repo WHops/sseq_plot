@@ -39,6 +39,7 @@ def process_cell(cell, orientation_count, outfile, cell_name):
     print('This is a proper cell')
     majority_orientation = '-' if orientation_count['-'] > orientation_count['+'] else '+'
     for entry in cell:
+        import pdb; pdb.set_trace()
         if majority_orientation == '-':
             entry[5] = flip_orientation(entry[5])
         entry.append(cell_name)
@@ -61,6 +62,15 @@ def process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end):
         open_func = open
         mode = 'r'
 
+    ref_window_start = ref_start - 2000000
+    ref_window_stop = ref_start
+
+    # If one of ref window is negative, instead have the window after the region. 
+    if (ref_window_start < 0){
+        ref_window_start = ref_end
+        ref_window_stop = ref_end + 2000000
+    }
+
     with open_func(input_bedfile, mode) as infile, open(output_bedfile, 'w') as outfile:
         current_cell = []
         current_cell_orientation_count = defaultdict(int)
@@ -80,9 +90,11 @@ def process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end):
                 start = int(start)
                 end = int(end)
                 #if chrom == "chrX" and 140000000 <= start <= 150000000:
-                if chrom == ref_chr and ref_start <= start <= ref_end:
+                if chrom == ref_chr and ref_window_start <= start <= ref_window_stop:
                     current_cell_orientation_count[strand] += 1
-                current_cell.append(fields)
+                
+                if chrom == ref_chr and ref_start <= start <= ref_end:
+                    current_cell.append(fields)
 
         if current_cell:
             process_cell(current_cell, current_cell_orientation_count, outfile, cell_name)
