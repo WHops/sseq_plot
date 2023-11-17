@@ -1,4 +1,4 @@
-# Load required libraries
+#t Load required libraries
 library(ggplot2)  # For creating plots
 library(dplyr)    # For data manipulation
 library(tidyr)    # For data tidying
@@ -45,6 +45,13 @@ extract_samplename <- function(input_file) {
 #' @return List containing the processed output data frame
 process_data <- function(data, bin_size, window_start, window_stop, ref_window_start, ref_window_stop) {
   
+  if(!("-" %in% data$strand)){
+    data[1,'strand'] = '-'
+  }
+  
+  if(!("+" %in% data$strand)){
+    data[1,'strand'] = '+'
+  }
   # Count reads per bin separately for + and - strand.
   output <- data %>%
     mutate(bin = (start - 1) %/% bin_size * bin_size + 1) %>%
@@ -57,7 +64,7 @@ process_data <- function(data, bin_size, window_start, window_stop, ref_window_s
   # Get mean 'reference' read counts in a reference region (here: chrX:150Mb-152Mb)
   sum_reads_region <- output %>%
     filter(bin >= ref_window_start & bin <= ref_window_stop) %>% 
-    summarize(sum_read_count_region = mean(abs(read_count)) * 2) %>%
+    summarize(sum_read_count_region = mean(abs(read_count)) ) %>%
     ungroup()
   
   # Normalize our read count by expected read count
@@ -75,6 +82,7 @@ process_data <- function(data, bin_size, window_start, window_stop, ref_window_s
 #' @param x Vector of genomic coordinates
 #' @return Formatted genomic coordinates
 format_genomic_coordinates <- function(x) {
+  print(x)
   return(sapply(x, function(coord) {
     if (coord >= 1e6) {
       return(paste0(coord / 1e6, "M"))
@@ -88,28 +96,46 @@ format_genomic_coordinates <- function(x) {
 
 # Plot read density
 #' @param output Output data frame
-plot_read_density <- function(output, mean_mappability, bin_size, window_start, window_stop, samplename='Input sample') {
-  x_axis_interval <- 20 * bin_size
+plot_read_density <- function(output, mean_mappability, bin_size, window_start, window_stop, samplename='Input sample', chromosome) {
+  x_axis_interval <- pretty((window_stop - window_start)/10)[1]#2e0 * bin_size
   
   # Based on mapping simulated reads, we know which regions of the genome typically do not align well. We highlight
   # those in the plot. 
   low_mean_regions <- output %>%
-    #filter(mean_mappability < 75) %>%
+    filter(mean_mappability < 50 | mean_false_reads > 5) %>%
     mutate(xmin = bin, xmax = bin + bin_size)
   
-  
-  p = ggplot(output, aes(x = bin, y = read_count_norm, color = strand)) +
-    geom_rect(data = low_mean_regions, aes(xmin = xmin, xmax = xmax, ymin = -3, ymax = 3, y = Inf), fill = "lightgrey", alpha = 1, color = NA) +
-    geom_hline(yintercept = c(-3, -2, -1, 0, 1, 2, 3), color = "grey") +
+  window_start_pretty = max(ceiling(window_start/bin_size)*bin_size,0)  #(window_start)[1]
+  window_end_pretty = min(max(output$bin),floor(window_stop/bin_size)*bin_size)
+   
+  print(window_start)
+  print(window_stop)
+  print(window_start_pretty)
+  print(window_end_pretty)
+  print(x_axis_interval) 
+
+  print(seq(window_start_pretty, window_end_pretty, x_axis_interval))
+
+  print(max(output$bin))
+  print(min(output$bin))
+
+  p = ggplot(output, aes(x = bin, y = read_count_norm, color = strand)) 
+
+
+
+  if (nrow(low_mean_regions) > 0){
+    p = p + geom_rect(data = low_mean_regions, aes(xmin = xmin, xmax = xmax, ymin = -3, ymax = 3, y = Inf), fill = "lightgrey", alpha = 0.5, color = NA)
+  }
+    p = p +  geom_hline(yintercept = c(-3, -2, -1, 0, 1, 2, 3), color = "grey") +
     geom_line(aes(group = strand), linewidth = 1) +
-    scale_x_continuous(name = "Chromosome position", breaks = seq(window_start, window_stop, x_axis_interval), labels = format_genomic_coordinates) +
+    scale_x_continuous(name = chromosome, breaks = seq(window_start_pretty, window_end_pretty, x_axis_interval), labels = format_genomic_coordinates) +
     scale_y_continuous(name = "Estimated copy number", breaks = c(-3, -2, -1, 0, 1, 2, 3), labels = c(3, 2, -1, 0, 1, 2, 3)) +
     theme_minimal() +
     theme(legend.position = "none", panel.grid.minor = element_blank()) +
     labs(y = 'Estimated copy number') +
-    ggtitle(paste0(samplename, ": Orientation-specific CN estimates in ", as.character(bin_size / 1000), " kbp bins")) +
+    ggtitle(paste0(samplename, "Orientation-specific CN estimates in ", as.character(bin_size / 1000), " kbp bins")) +
     scale_color_manual(values = c("+" = rgb(243 / 255, 165 / 255, 97 / 255), "-" = rgb(103 / 255, 139 / 255, 139 / 255)))
-  
+ 
   print(p)
   return(p)
 }
@@ -146,11 +172,10 @@ create_bedgraph <- function(data, chromosome, strand, color, file_name, bin_size
 # Main script
 if (sys.nframe() == 0){
   options(scipen = 999)
-
   # Read command-line arguments
   args <- commandArgs(trailingOnly = TRUE)
   
-  if (length(args) != 7) {
+  if (length(args) != 8) {
     cat("Usage: Rscript script.R <input_file> <output_plotfile> <output_bedgraph> <chromosome> <window_start> <window_stop> <binsize>\n")
     quit(save="no", status=1)
   }
@@ -162,7 +187,7 @@ if (sys.nframe() == 0){
   window_start <- as.numeric(args[5])
   window_stop <- as.numeric(args[6])
   bin_size <- as.numeric(args[7])
-
+  mappability_file <- args[8]
 
   ref_window_start = window_start - 2000000
   ref_window_stop = window_start
@@ -181,19 +206,16 @@ if (sys.nframe() == 0){
   # Count normalized reads per bin and directionality.
   processed_data <- process_data(data, bin_size, window_start, window_stop, ref_window_start, ref_window_stop)
   output <- processed_data$output
-  
   # Get also mappability data to highlight in the outcoming plot which regions could be un-trustworthy.
-  #mappability_data <- read_mappability_file(mappability_file)
-  #mean_mappability_data <- calculate_mean_mappability(mappability_data, bin_size)
-  
+  mappability_data <- read_mappability_file(mappability_file)
+  mean_mappability_data <- calculate_mean_mappability(mappability_data, bin_size)
   # Merge mean_mappability_data with output
-  # output <- output %>%
-  #   left_join(mean_mappability_data, by = "bin")
-  mean_mappability_data = 'dummy'
-
+   output <- output %>%
+     left_join(mean_mappability_data, by = "bin")
+  #mean_mappability_data = 'dummy'
   # Make and save the plot
-  plot <- plot_read_density(output, mean_mappability_data, bin_size, window_start, window_stop, samplename)
-  ggsave(plot = plot, filename = output_plotfile, device = 'png', height = 10, width = 20, units = 'cm')
+  plot <- plot_read_density(output, mean_mappability_data, bin_size, window_start, window_stop, samplename, chromosome)
+  ggsave(plot = plot, filename = output_plotfile, device = 'pdf', height = 15, width = 30, units = 'cm')
   
   # Filter the data frame by strand
   minus_strand <- output[output$strand == "-", ]
