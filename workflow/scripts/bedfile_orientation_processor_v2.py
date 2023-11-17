@@ -66,10 +66,9 @@ def process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end):
     ref_window_stop = ref_start
 
     # If one of ref window is negative, instead have the window after the region. 
-    if (ref_window_start < 0){
+    if (ref_window_start < 0):
         ref_window_start = ref_end
         ref_window_stop = ref_end + 2000000
-    }
 
     with open_func(input_bedfile, mode) as infile, open(output_bedfile, 'w') as outfile:
         current_cell = []
@@ -85,7 +84,6 @@ def process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end):
                 cell_name = line.split()[1].split('=')[1]
             else:
                 fields = line.strip().split('\t')
-                #import pdb; pdb.set_trace()
                 chrom, start, end, _, _, strand = fields
                 start = int(start)
                 end = int(end)
@@ -93,7 +91,7 @@ def process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end):
                 if chrom == ref_chr and ref_window_start <= start <= ref_window_stop:
                     current_cell_orientation_count[strand] += 1
                 
-                if chrom == ref_chr and ref_start <= start <= ref_end:
+                if chrom == ref_chr and min(ref_start,ref_window_start) <= start <= max(ref_end,ref_window_stop):
                     current_cell.append(fields)
 
         if current_cell:
@@ -110,3 +108,4 @@ if __name__ == "__main__":
     ref_start = int(sys.argv[4])
     ref_end = int(sys.argv[5])
     process_bedfile(input_bedfile, output_bedfile, ref_chr, ref_start, ref_end)
+

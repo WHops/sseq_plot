@@ -36,7 +36,7 @@ print(SAMPLES)
 print(REGIONS)
 rule all: 
     input:
-        png = expand("res/{sample}/pipe_plots/{sample}_{chr_start_end}_{binsize}.png",
+        pdf = expand("res/{sample}/pipe_plots/{sample}_{chr_start_end}_{binsize}.pdf",
                sample=SAMPLES,
                chr_start_end=REGIONS,
                binsize=config["binsize"]),
@@ -49,22 +49,34 @@ rule all:
 
 rule get_plot_and_bedpe:
     input:
-        sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
+        sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed",
+        mappingfile = "res/mappingfiles/mapping_{chr}_{start}_{end}.txt"
     output:
-        png = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}_{binsize}.png",
+        pdf = "res/{sample}/pipe_plots/{sample}_{chr}_{start}_{end}_{binsize}.pdf",
         bedpe = "res/{sample}/pipe_data/{sample}_{chr}_{start}_{end}_{binsize}.bedpe"
     shell:
         """
         Rscript workflow/scripts/CN_plot_sum.R \
             {input.sample_concat_orientationflip} \
-            {output.png} \
+            {output.pdf} \
             {output.bedpe} \
             {wildcards.chr} \
             {wildcards.start} \
             {wildcards.end} \
-            {wildcards.binsize}
+            {wildcards.binsize} \
+            {input.mappingfile}
         """
 
+rule subset_mappingthing:
+    input:
+    output:
+        mappingfile = "res/mappingfiles/mapping_{chr}_{start}_{end}.txt"
+    params:
+        full_mapping = config["full_mapping"]
+    shell:
+        """
+        bash workflow/scripts/subset_mappingfile.sh {params.full_mapping} {wildcards.chr} {wildcards.start} {wildcards.end} {output.mappingfile}
+        """
 # For this rule, we need to externally provide regions - chr, start, end, and then put them here as arguments into the shell command. 
 rule get_sample_concat_orientationflip:
     input:
