@@ -39,6 +39,7 @@ def process_cell(cell, orientation_count, outfile, cell_name):
     #print('This is a proper cell')
     majority_orientation = '-' if orientation_count['-'] > orientation_count['+'] else '+'
     for entry in cell:
+        import pdb; pdb.set_trace()
         if majority_orientation == '-':
             entry[5] = flip_orientation(entry[5])
         entry.append(cell_name)
