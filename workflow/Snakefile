@@ -28,7 +28,6 @@ def read_regions(regions_file):
 
 samples_raw = open(samplefile)
 SAMPLES = samples_raw.read().split("\n")[:-1]
-
 regions_raw = open(regionfile)
 REGIONS = regions_raw.read().split("\n")[:-1]
 
@@ -85,7 +84,7 @@ rule get_sample_concat_orientationflip:
         sample_concat_orientationflip = "res/{sample}/sample_concat_orientationflip_{chr}_{start}_{end}.bed"
     shell: 
         """
-        python workflow/scripts/bedfile_orientation_processor_v2.py \
+        python3 workflow/scripts/bedfile_orientation_processor_v2.py \
             {input.sample_concat} \
             {output.sample_concat_orientationflip} \
             {wildcards.chr} \
@@ -100,7 +99,7 @@ rule get_sample_concat:
         sample_concat = "res/{sample}/sample_concat.bed.gz"
     shell:
         """
-        python workflow/scripts/prep_for_ucsc.py \
+        python3 workflow/scripts/prep_for_ucsc.py \
                     res/{wildcards.sample}/browserfiles \
                     {output.sample_concat} 
         """

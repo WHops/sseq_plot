@@ -27,16 +27,16 @@ def process_cell(cell, orientation_count, outfile, cell_name):
     # Check if the ratio between - and + counts is at least 25:75 in either direction. If not, set is_wc to True
     majority_orientation_count = orientation_count['-'] if orientation_count['-'] > orientation_count['+'] else orientation_count['+']
     minority_orientation_count = orientation_count['-'] if orientation_count['-'] < orientation_count['+'] else orientation_count['+']
-    print(majority_orientation_count, minority_orientation_count)
+    #print(majority_orientation_count, minority_orientation_count)
     if (minority_orientation_count == 0):
-        print('Zero reads found; adding a virtual one')
+        #print('Zero reads found; adding a virtual one')
         minority_orientation_count += 0.1
 
     
     if majority_orientation_count / minority_orientation_count < 3:
-        print("Looks like a WC cell! Skipping...")
+        #print("Looks like a WC cell! Skipping...")
         return()
-    print('This is a proper cell')
+    #print('This is a proper cell')
     majority_orientation = '-' if orientation_count['-'] > orientation_count['+'] else '+'
     for entry in cell:
         if majority_orientation == '-':

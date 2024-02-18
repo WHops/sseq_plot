@@ -53,6 +53,7 @@ process_data <- function(data, bin_size, window_start, window_stop, ref_window_s
     data[1,'strand'] = '+'
   }
   # Count reads per bin separately for + and - strand.
+  print(dim(data))
   output <- data %>%
     mutate(bin = (start - 1) %/% bin_size * bin_size + 1) %>%
     count(strand, bin) %>%
@@ -60,7 +61,7 @@ process_data <- function(data, bin_size, window_start, window_stop, ref_window_s
     gather(strand, read_count, c("+", "-")) %>%
     mutate(read_count = ifelse(strand == "+", read_count, -read_count)) %>%
     complete(strand, bin = seq(min(bin), max(bin), by = bin_size), fill = list(read_count = 0))
-  
+  print("hi") 
   # Get mean 'reference' read counts in a reference region (here: chrX:150Mb-152Mb)
   sum_reads_region <- output %>%
     filter(bin >= ref_window_start & bin <= ref_window_stop) %>% 
@@ -119,7 +120,10 @@ plot_read_density <- function(output, mean_mappability, bin_size, window_start, 
   print(max(output$bin))
   print(min(output$bin))
 
-  p = ggplot(output, aes(x = bin, y = read_count_norm, color = strand)) 
+  output_plus = output
+  output_plus$bin = output_plus$bin+(bin_size*0.99999)
+  output = rbind(output, output_plus)
+  p = ggplot(output, aes(x = bin, y = read_count_norm, fill = strand)) 
 
 
 
@@ -127,14 +131,14 @@ plot_read_density <- function(output, mean_mappability, bin_size, window_start, 
     p = p + geom_rect(data = low_mean_regions, aes(xmin = xmin, xmax = xmax, ymin = -3, ymax = 3, y = Inf), fill = "lightgrey", alpha = 0.5, color = NA)
   }
     p = p +  geom_hline(yintercept = c(-3, -2, -1, 0, 1, 2, 3), color = "grey") +
-    geom_line(aes(group = strand), linewidth = 1) +
+    geom_area(aes(group = strand, fill=strand)) +
     scale_x_continuous(name = chromosome, breaks = seq(window_start_pretty, window_end_pretty, x_axis_interval), labels = format_genomic_coordinates) +
     scale_y_continuous(name = "Estimated copy number", breaks = c(-3, -2, -1, 0, 1, 2, 3), labels = c(3, 2, -1, 0, 1, 2, 3)) +
     theme_minimal() +
     theme(legend.position = "none", panel.grid.minor = element_blank()) +
     labs(y = 'Estimated copy number') +
     ggtitle(paste0(samplename, "Orientation-specific CN estimates in ", as.character(bin_size / 1000), " kbp bins")) +
-    scale_color_manual(values = c("+" = rgb(243 / 255, 165 / 255, 97 / 255), "-" = rgb(103 / 255, 139 / 255, 139 / 255)))
+    scale_fill_manual(values = c("+" = rgb(243 / 255, 165 / 255, 97 / 255), "-" = rgb(103 / 255, 139 / 255, 139 / 255)))
  
   print(p)
   return(p)
@@ -215,7 +219,7 @@ if (sys.nframe() == 0){
   #mean_mappability_data = 'dummy'
   # Make and save the plot
   plot <- plot_read_density(output, mean_mappability_data, bin_size, window_start, window_stop, samplename, chromosome)
-  ggsave(plot = plot, filename = output_plotfile, device = 'pdf', height = 15, width = 30, units = 'cm')
+  ggsave(plot = plot, filename = output_plotfile, device = 'pdf', height = 3, width = 30, units = 'cm')
   
   # Filter the data frame by strand
   minus_strand <- output[output$strand == "-", ]
