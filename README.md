@@ -26,8 +26,8 @@ sseq_plot was developed with the following dependencies:
 sseq_plot is implemented as a Snakemake workflow.
 
 1) Edit config/config.yaml:
-   1)  to point to your directory of mapped bam files
-   2) Congig: Set the desired binsize (recommended: 10kbp)
+   1) Point to your directory of mapped bam files
+   2) Set the desired binsize (recommended: 10kbp)
    3) Link to a 'mappability' file which is part of ArbiGent.
 2) run: 
 
